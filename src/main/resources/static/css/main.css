@@ -17,12 +17,18 @@ body {
 }
 
 .btn-primary {
-    background: #FBC0AF;
-    border-color: #FBC0AF;
+    background:#FFA103;
+    border-color: #FFA103;
 }
 
 .btn-top {
-    width: 30%;
+    width:40%;
+}
+
+.btn-position{
+    position:relative;
+    top:50px;
+    font-size: 40px;
 }
 
 .ui.main.container {
@@ -31,7 +37,7 @@ body {
 
 a.logo {
     font-family: 'Exo', sans-serif;
-    color: #f33;
+    color: #FFA103;
 }
 
 .bland-message {
@@ -54,7 +60,7 @@ div.center.column {
 
 .register {
     color: #0066CC;
-    font-size: 16px;
+    font-size: 60px;
     font-weight: bold;
     text-decoration: underline;
 }
