@@ -215,3 +215,21 @@ footer{
 td {
     width: 400px;
 }
+
+h1 {
+  position: relative;
+  padding: 0.25em 0;
+}
+h1:after {
+  content: "";
+  display: block;
+  height: 4px;
+  background: -webkit-linear-gradient(to right, rgb(255, 186, 115), #ffb2b2);
+  background: linear-gradient(to right, rgb(255, 186, 115), #ffb2b2);
+}
+
+h2 {
+    border-top: 2px dotted #d2691e;
+    border-bottom: 2px dotted #d2691e;
+}
+
