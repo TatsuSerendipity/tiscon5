@@ -155,7 +155,6 @@ public class EstimateDao {
             // 1行ずつCSVファイルを読み込み、転居先と転居元の緯度経度の抽出
             while ((line = br.readLine()) != null) {
                 String[] data = line.split(",", 0); // 行をカンマ区切りで配列に変換
-                System.out.println(data);
                 if (data[0].equals(oldPre)) {
                     if (data[1].equals(oldAdd)) {
                         latold = Double.parseDouble(data[2]);
@@ -172,8 +171,10 @@ public class EstimateDao {
             br.close();
         } catch (IOException e) {
             System.out.println(e);
-            System.out.println("1");
         }
+        //エラー処理
+        //緯度と経度が抽出に失敗し、0.0のものがあればエラー
+        //間に合いませんでした。
 
         /*
         //テスト
@@ -214,14 +215,14 @@ public class EstimateDao {
 
     /**
      * 段ボール数に応じたトラック料金を取得する。
-     * DBから読み込んだMAX_BOX
+     * DBから読み込んだMAX_BOXとPRICEを読み込み算出する
+     * 今は配列の長さを[2][2]で固定しているが、本来はDBの長さを受け取って処理を変える
      *
      * @param boxNum 総段ボール数
      * @return 料金[円]
      */
     public int getPricePerTruck(int boxNum) {
         //String sql = "SELECT PRICE FROM TRUCK_CAPACITY WHERE MAX_BOX >= :boxNum ORDER BY PRICE LIMIT 1";
-
         //SqlParameterSource paramSource = new MapSqlParameterSource("boxNum", boxNum);
         //return parameterJdbcTemplate.queryForObject(sql, paramSource, Integer.class);
 
@@ -229,18 +230,6 @@ public class EstimateDao {
         List<TruckCapacity> truckcapacity = gettruckPrice();
         //トラック料金を格納
         int truckPrice;
-
-        //テスト用
-        //int array[][];
-        //array = new int[2][2];
-        //array[0][0] = truckcapacity.get(0).getmaxBox();
-        //array[0][1] = truckcapacity.get(0).gettruckPrice();
-        //array[1][0] = truckcapacity.get(1).getmaxBox();
-        //array[1][1] = truckcapacity.get(1).gettruckPrice();
-        //System.out.println(array[0][0]);
-        //System.out.println(array[0][1]);
-        //System.out.println(array[1][0]);
-        //System.out.println(array[1][1]);
 
         int div = boxNum / truckcapacity.get(1).getmaxBox();
         int sur = boxNum % truckcapacity.get(1).getmaxBox();
