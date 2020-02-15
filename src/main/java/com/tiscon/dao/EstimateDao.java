@@ -172,21 +172,11 @@ public class EstimateDao {
         } catch (IOException e) {
             System.out.println(e);
         }
+        
         //エラー処理
         //緯度と経度が抽出に失敗し、0.0のものがあればエラー
         //間に合いませんでした。
 
-        /*
-        //テスト
-        System.out.println(oldPre);
-        System.out.println(oldAdd);
-        System.out.println(latold);
-        System.out.println(lngold);
-        System.out.println(newPre);
-        System.out.println(newAdd);
-        System.out.println(latnew);
-        System.out.println(lngnew);
-        */
         //転居元の緯度経度
         double lat1 = latold * PI / 180;
         double lng1 = lngold * PI / 180;
@@ -197,7 +187,7 @@ public class EstimateDao {
 
         // 2点間の距離[km]
         double distance = r * acos(sin(lat1) * sin(lat2) + cos(lat1) * cos(lat2) * cos(lng2 - lng1));
-        //System.out.println(distance);
+
         return distance;
     }
     /**
@@ -234,9 +224,6 @@ public class EstimateDao {
 
         int div = boxNum / truckcapacity.get(1).getmaxBox();
         int sur = boxNum % truckcapacity.get(1).getmaxBox();
-        //System.out.println(div);
-        //System.out.println(sur);
-        //System.out.println(boxNum);
 
         if(boxNum <= truckcapacity.get(0).getmaxBox()) {
             truckPrice = truckcapacity.get(0).getprice();
