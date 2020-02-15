@@ -199,6 +199,19 @@ ul.label {
     border: 1px solid rgba(34,36,38,.15);
 }
 
+footer{
+    height:170px;
+    width: 100%;
+    background-color: #89c7de;
+    color: #fff;
+    padding: 20px 0px;
+}
+
+.footer-under{
+    text-align:center;
+    margin-top:15px;
+}
+
 td {
     width: 400px;
 }
