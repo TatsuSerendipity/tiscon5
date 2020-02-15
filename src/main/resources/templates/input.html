@@ -55,7 +55,7 @@
         </div>
         <div class="form-group">
           <span>
-            <label for="oldAddress">転居元住所（市区町村以下）</label>
+            <label for="oldAddress">転居元住所（市区町村まで）</label>
             <label>:</label>
             <font color="red"><label th:if="${#fields.hasErrors('*{oldAddress}')}" th:errors="*{oldAddress}" ></label></font>
           </span>
@@ -70,7 +70,7 @@
         </div>
         <div class="form-group">
           <span>
-            <label for="newAddress">転居先住所（市区町村以下）</label>
+            <label for="newAddress">転居先住所（市区町村まで）</label>
             <label>:</label>
             <font color="red"><label th:if="${#fields.hasErrors('*{newAddress}')}" th:errors="*{newAddress}" ></label></font>
           </span>

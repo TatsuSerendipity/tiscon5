@@ -3,12 +3,21 @@ package com.tiscon.dao;
 import com.tiscon.domain.*;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.*;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+//追加
+import static java.lang.Math.*;
+import java.io.File;
+import java.io.FileReader;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.Map;
 
 /**
  * 引越し見積もり機能においてDBとのやり取りを行うクラス。
@@ -89,6 +98,7 @@ public class EstimateDao {
      * @param prefectureIdTo   引越し先の都道府県
      * @return 距離[km]
      */
+    /*
     public double getDistance(String prefectureIdFrom, String prefectureIdTo) {
         // 都道府県のFromとToが逆転しても同じ距離となるため、「そのままの状態のデータ」と「FromとToを逆転させたデータ」をくっつけた状態で距離を取得する。
         String sql = "SELECT DISTANCE FROM (" +
@@ -108,7 +118,87 @@ public class EstimateDao {
         }
         return distance;
     }
+    */
+    public double getDistance(String prefectureIdFrom, String prefectureIdTo, String oldaddress, String newaddress) {
 
+        PrefectureDistance prefectureDistance = new PrefectureDistance();
+        prefectureDistance.setPrefectureIdFrom(prefectureIdFrom);
+        prefectureDistance.setPrefectureIdTo(prefectureIdTo);
+
+        double r = 6378.137; // 赤道半径[km]
+
+        String oldPre = prefectureIdFrom;
+        String oldAdd = oldaddress;
+        String newPre = prefectureIdTo;
+        String newAdd = newaddress;
+        // (lat = 緯度, lng = 経度)
+        double latold = 0;
+        double lngold = 0;
+        double latnew = 0;
+        double lngnew = 0;
+
+        //oldPreとnewPreが1～9の場合は0を削る
+        if (oldPre.equals("01") || oldPre.equals("02") || oldPre.equals("03") || oldPre.equals("04") || oldPre.equals("05") || oldPre.equals("06") || oldPre.equals("07") || oldPre.equals("08") || oldPre.equals("09")){
+            oldPre = oldPre.substring(1);
+        }
+        if (newPre.equals("01") || newPre.equals("02") || newPre.equals("03") || newPre.equals("04") || newPre.equals("05") || newPre.equals("06") || newPre.equals("07") || newPre.equals("08") || newPre.equals("09")){
+            newPre = newPre.substring(1);
+        }
+
+        try {
+            //今はCドライブから読み込んでるが、本来はDBに緯度経度と市町村のファイルを登録し、そこから参照する
+            //ファイルは resource/data/lonlat.csv に置いています
+            File f = new File("C://lonlat.csv");
+            BufferedReader br = new BufferedReader(new FileReader(f));
+
+            String line;
+            // 1行ずつCSVファイルを読み込み、転居先と転居元の緯度経度の抽出
+            while ((line = br.readLine()) != null) {
+                String[] data = line.split(",", 0); // 行をカンマ区切りで配列に変換
+                System.out.println(data);
+                if (data[0].equals(oldPre)) {
+                    if (data[1].equals(oldAdd)) {
+                        latold = Double.parseDouble(data[2]);
+                        lngold = Double.parseDouble(data[3]);
+                    }
+                }
+                if (data[0].equals(newPre)) {
+                    if (data[1].equals(newAdd)) {
+                        latnew = Double.parseDouble(data[2]);
+                        lngnew = Double.parseDouble(data[3]);
+                    }
+                }
+            }
+            br.close();
+        } catch (IOException e) {
+            System.out.println(e);
+            System.out.println("1");
+        }
+
+        /*
+        //テスト
+        System.out.println(oldPre);
+        System.out.println(oldAdd);
+        System.out.println(latold);
+        System.out.println(lngold);
+        System.out.println(newPre);
+        System.out.println(newAdd);
+        System.out.println(latnew);
+        System.out.println(lngnew);
+        */
+        //転居元の緯度経度
+        double lat1 = latold * PI / 180;
+        double lng1 = lngold * PI / 180;
+
+        //転居先の緯度経度
+        double lat2 = latnew * PI / 180;
+        double lng2 = lngnew * PI / 180;
+
+        // 2点間の距離[km]
+        double distance = r * acos(sin(lat1) * sin(lat2) + cos(lat1) * cos(lat2) * cos(lng2 - lng1));
+        //System.out.println(distance);
+        return distance;
+    }
     /**
      * 荷物ごとの段ボール数を取得する。
      *
@@ -124,15 +214,62 @@ public class EstimateDao {
 
     /**
      * 段ボール数に応じたトラック料金を取得する。
+     * DBから読み込んだMAX_BOX
      *
      * @param boxNum 総段ボール数
      * @return 料金[円]
      */
     public int getPricePerTruck(int boxNum) {
-        String sql = "SELECT PRICE FROM TRUCK_CAPACITY WHERE MAX_BOX >= :boxNum ORDER BY PRICE LIMIT 1";
+        //String sql = "SELECT PRICE FROM TRUCK_CAPACITY WHERE MAX_BOX >= :boxNum ORDER BY PRICE LIMIT 1";
 
-        SqlParameterSource paramSource = new MapSqlParameterSource("boxNum", boxNum);
-        return parameterJdbcTemplate.queryForObject(sql, paramSource, Integer.class);
+        //SqlParameterSource paramSource = new MapSqlParameterSource("boxNum", boxNum);
+        //return parameterJdbcTemplate.queryForObject(sql, paramSource, Integer.class);
+
+        //段ボール数とトラック料金のオブジェクトに格納
+        List<TruckCapacity> truckcapacity = gettruckPrice();
+        //トラック料金を格納
+        int truckPrice;
+
+        //テスト用
+        //int array[][];
+        //array = new int[2][2];
+        //array[0][0] = truckcapacity.get(0).getmaxBox();
+        //array[0][1] = truckcapacity.get(0).gettruckPrice();
+        //array[1][0] = truckcapacity.get(1).getmaxBox();
+        //array[1][1] = truckcapacity.get(1).gettruckPrice();
+        //System.out.println(array[0][0]);
+        //System.out.println(array[0][1]);
+        //System.out.println(array[1][0]);
+        //System.out.println(array[1][1]);
+
+        int div = boxNum / truckcapacity.get(1).getmaxBox();
+        int sur = boxNum % truckcapacity.get(1).getmaxBox();
+        //System.out.println(div);
+        //System.out.println(sur);
+        //System.out.println(boxNum);
+
+        if(boxNum <= truckcapacity.get(0).getmaxBox()) {
+            truckPrice = truckcapacity.get(0).getprice();
+        }else if(boxNum <= truckcapacity.get(1).getmaxBox()){
+            truckPrice = truckcapacity.get(1).getprice();
+        }else if(sur <= truckcapacity.get(0).getmaxBox()){
+            truckPrice = div * truckcapacity.get(1).getprice() + truckcapacity.get(0).getprice();
+        }else{
+            truckPrice = div * truckcapacity.get(1).getprice() + truckcapacity.get(1).getprice();
+        }
+
+        return truckPrice;
+
+    }
+    /**
+     * トラックキャパシティテーブルに格納されているMax_BoxとPriceの取得
+     *
+     * @return 全てのMax_BoxとPrice
+     */
+    public List<TruckCapacity> gettruckPrice() {
+        String sql = "SELECT MAX_BOX, PRICE FROM TRUCK_CAPACITY";
+        return parameterJdbcTemplate.query(sql,
+                BeanPropertyRowMapper.newInstance(TruckCapacity.class));
     }
 
     /**

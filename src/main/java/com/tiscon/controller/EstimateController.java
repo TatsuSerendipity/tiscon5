@@ -101,17 +101,18 @@ public class EstimateController {
     }
 
     /**
-     * 確認画面に戻る。
+     * 入力画面に戻る。
      *
      * @param userOrderForm 顧客が入力した見積もり依頼情報
      * @param model         遷移先に連携するデータ
-     * @return 遷移先
+     * @return 遷移先 input.html
+     * 変数名をConfirmからInputに変えて調整する必要あり
      */
     @PostMapping(value = "order", params = "backToConfirm")
     String backToConfirm(UserOrderForm userOrderForm, Model model) {
         model.addAttribute("prefectures", estimateDAO.getAllPrefectures());
         model.addAttribute("userOrderForm", userOrderForm);
-        return "confirm";
+        return "input";
     }
 
     /**
@@ -124,6 +125,7 @@ public class EstimateController {
      */
     @PostMapping(value = "result", params = "calculation")
     String calculation(@Validated UserOrderForm userOrderForm, BindingResult result, Model model) {
+        //このブロックはいらないはず
         if (result.hasErrors()) {
 
             model.addAttribute("prefectures", estimateDAO.getAllPrefectures());
